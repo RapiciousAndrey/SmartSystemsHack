@@ -2,13 +2,13 @@
 #include <nRF24L01.h>                                     // Подключаем файл настроек из библиотеки RF24
 #include <RF24.h>                                         // Подключаем библиотеку для работы с nRF24L01+
 RF24           radio(9, 10);                              // Создаём объект radio для работы с библиотекой RF24, указывая номера выводов nRF24L01+ (CE, CSN)
-int            mapData[5][5];  // карта, которую мы принимаем от других роботов
+int            mapData[4][4];  // карта, которую мы принимаем от других роботов
 int            comand;       
 int mySpottedDirects;
-  int mapp[5][5];//Карта, которая обрабатывается роботом(его карта)
+  int mapp[4][4];//Карта, которая обрабатывается роботом(его карта)
 const int varX[] = {1, 0, -1, 0 };
 const int varY[] = {0, 1,  0, -1}; 
-
+int queue[25];
 bool isStepMod = 0;
 int coordX = 0;
 int coordY = 0;
@@ -107,9 +107,9 @@ void Move(int direct, bool lool/*проверяет движемся ли мы �
 
 void check()//Правит карту в ближайщих четырёх клетках
 {
-  for(int i = 0; i < 5; i++)
+  for(int i = 0; i < 4; i++)
   {
-    if(coordX + varX[i] < 5 && coordX + varX[i] > -1 && coordY + varY[i] < 5 && coordY + varY[i] > -1 && mapp[coordX + varX[i]][coordY + varY[i]] == 0 )
+    if(coordX + varX[i] < 4 && coordX + varX[i] > -1 && coordY + varY[i] < 4 && coordY + varY[i] > -1 && mapp[coordX + varX[i]][coordY + varY[i]] == 0 )
     {
       int q = direct-i;//                   }
       if(abs(q)>2&&q!=0)Move(-(q)%2,0);//    }  поворот для чека тумана войны.
@@ -199,8 +199,8 @@ void recieve()
 
 void makemap()//Слияние своей карты с полученной.
 {
-  for(int i = 0; i < 5; i++)
-    for(int j = 0; j < 5; j++)
+  for(int i = 0; i < 4; i++)
+    for(int j = 0; j < 4; j++)
     {
       if(mapp[i][j] != mapData[i][j] && mapData[i][j] != 0 && mapData[i][j] != 3 )
         mapp[i][j] = mapData[i][j];  
@@ -216,6 +216,42 @@ void transmite()//Передача данных на второго робота
 
 void searchLines()
 {
-  for()
+  int used[4][4];
+  int search[4][4];
+  int q = 0;
+  for(int i = 0; i < 4; i++)
+    for(int j = 0; j < 4; j++)
+    {
+      if(mapp[i][j]!=1)search[i][j] = -1;
+      else search[i][j] = 0;
+    }
+  for(int i = 0; i < 4; i++)
+    for(int j = 0; j < 4; j++)
+      used[i][j] = search[i][j]; 
+  search[coordX][coordY]=0;
+  used[coordX][coordY]=2;
+  while(true)
+  {
+    q++;
+    for(int i = 0; i < 4; i++)
+      for(int j = 0; j < 4; j++)
+      {
+        if(used[i][j]==2)
+        {
+          for(int w = 0; w < 4; w++)
+          {
+            if(used[coordX + varX[w]][coordY + varY[w]] == 0)
+            {
+              search[coordX + varX[w]][coordY + varY[w]] = q;
+              used[coordX + varX[w]][coordY + varY[w]] = 2;
+            } 
+          }
+          used[i][j] = -1;
+        }
+      }
+  }
+  
 }
+
+
 
